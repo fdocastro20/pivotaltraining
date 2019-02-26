@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PalTracker
 {
-    [Route("api/timeentries")]
+    [Route("time-entries")]
     public class TimeEntryController : ControllerBase
     {
         private ITimeEntryRepository _inMemoryTimeEntryRepository;
@@ -14,7 +15,7 @@ namespace PalTracker
                 _inMemoryTimeEntryRepository = inMemoryTimeEntryRepository;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name= "GetTimeEntry")]
         public IActionResult Read(long id)
         {
             TimeEntry timeEntry;
@@ -34,41 +35,50 @@ namespace PalTracker
         [HttpGet]
         public IActionResult List()
         { 
-           /* IEnumerable<TimeEntry> listTimeEntries;
+            IEnumerable<TimeEntry> listTimeEntries;
             listTimeEntries = _inMemoryTimeEntryRepository.List();
-           if (listTimeEntries == null)
+           /*if (listTimeEntries == null || !listTimeEntries.GetEnumerator().MoveNext())
             {
                 return NotFound();
-            }
+            }*/
 
             return Ok(listTimeEntries);
-            */
-            throw new NotImplementedException();
         }
 
         [HttpPost]
         public IActionResult Create([FromBody] TimeEntry timeEntry)
         {
             TimeEntry timeEntryCreated;
-
-            if (timeEntry.Id==null)
+            
+            /*if (timeEntry.ProjectId == 0 || timeEntry.UserId == 0 || timeEntry.Date == null || timeEntry.Hours == 0)
+            //if (!ModelState.IsValid)
             {
                 return BadRequest();
-            }
-            timeEntryCreated=_inMemoryTimeEntryRepository.Create(timeEntry);
-            return CreatedAtRoute("Read", new {Id = timeEntryCreated.Id}, timeEntryCreated);
+            }*/
+
+            timeEntryCreated = _inMemoryTimeEntryRepository.Create(timeEntry);
+            return CreatedAtRoute("GetTimeEntry", new {id = timeEntryCreated.Id}, timeEntryCreated);
         }
 
         [HttpPut("{id}")]
         public IActionResult Update(long id, [FromBody] TimeEntry timeEntry)
         {
-            throw new NotImplementedException();
+            TimeEntry timeEntryUpdated;
+            if (!_inMemoryTimeEntryRepository.Contains(id))
+                return NotFound();
+
+            timeEntryUpdated = _inMemoryTimeEntryRepository.Update(id, timeEntry);
+            return new OkObjectResult(timeEntryUpdated);
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(long id)
         {
-            throw new NotImplementedException();
+            if (!_inMemoryTimeEntryRepository.Contains(id))
+                return NotFound();
+
+            _inMemoryTimeEntryRepository.Delete(id);
+            return NoContent();
         }
 
     }
